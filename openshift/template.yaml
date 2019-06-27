@@ -33,9 +33,7 @@ objects:
           service: metrics-collector
       spec:
         containers:
-        - command:
-          - /bin/entrypoint.sh
-          env:
+        - env:
           - name: NUMBER_WORKER_PROCESS
             value: "${NUMBER_WORKER_PROCESS}"
           - name: METRICS_COLLECTOR_SERVICE_PORT
@@ -76,7 +74,7 @@ objects:
               cpu: ${CPU_LIMIT}
               memory: ${MEMORY_LIMIT}
           volumeMounts:
-          - mountPath: "${prometheus_multiproc_dir}"
+          - mountPath: "/var/log/prometheus"
             name: bayesian-prometheus-pv
         volumes:
           - name: bayesian-prometheus-pv
@@ -165,6 +163,24 @@ parameters:
   required: true
   name: METRICS_COLLECTOR_SERVICE_PORT
   value: "5200"
+
+- description: Timeout Value
+  displayName: Timeout Value
+  required: true
+  name: METRICS_COLLECTOR_SERVICE_TIMEOUT
+  value: "30"
+
+- description: Number of worker processes
+  displayName: Number of worker proceses
+  required: true
+  name: NUMBER_WORKER_PROCESS
+  value: "1"
+
+- description: Class Type
+  displayName: Class Type
+  required: true
+  name: CLASS_TYPE
+  value: "gevent"
 
 - description: "Flask logging level (see: https://docs.python.org/3/library/logging.html#levels)"
   displayName: Flask logging level
