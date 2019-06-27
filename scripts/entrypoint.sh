@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+if [ ! -n "$NUMBER_WORKER_PROCESS" ]; then
+    NUMBER_WORKER_PROCESS=1
+fi
+
+if [ ! -n "$METRICS_COLLECTOR_SERVICE_PORT" ]; then
+    DATA_IMPORTER_SERVICE_PORT=5200
+fi
+
+if [ ! -n "$METRICS_COLLECTOR_SERVICE_TIMEOUT" ]; then
+    DATA_IMPORTER_SERVICE_TIMEOUT=30
+fi
+
+gunicorn --pythonpath src/ -c src/config.py -b 0.0.0.0:$METRICS_COLLECTOR_SERVICE_PORT -t $METRICS_COLLECTOR_SERVICE_TIMEOUT -k $CLASS_TYPE -w $NUMBER_WORKER_PROCESS api:app
