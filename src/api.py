@@ -45,7 +45,7 @@ def init_prometheus_client():
     histogram = Histogram(
         '%s_http_request_duration_seconds' % prefix,
         'Flask HTTP request duration in seconds aggregated by pid, method, endpoint, response_code',
-        ('method', duration_group_name, 'status'),
+        ('pid', 'method', duration_group_name, 'status'),
         registry=registry,
         **buckets
     )
@@ -54,14 +54,14 @@ def init_prometheus_client():
     counter = Counter(
         '%s_http_request_count' % prefix,
         'Total number of HTTP requests aggregated by method, endpoint, response_code',
-        ('method', duration_group_name, 'status'),
+        ('pid', 'method', duration_group_name, 'status'),
         registry=registry
     )
     # Add group by endpoint or path for our Counter metrics
     counter_time = Counter(
         '%s_http_request_latency_time' % prefix,
         'Total time to serve HTTP requests aggregated by method, endpoint, response_code',
-        ('method', duration_group_name, 'status'),
+        ('pid', 'method', duration_group_name, 'status'),
         registry=registry
     )
 
@@ -102,24 +102,25 @@ def metrics_colletion():
     """Persist the prometheus metrics from different analytics services."""
     status = 200
     message = 'success'
-    payload = ['endpoint', 'value', 'request_method', 'status_code']
+    payload = ['endpoint', 'value', 'request_method', 'status_code', 'pid']
     try:
         input_json = request.get_json()
         assert all(inputs in input_json for inputs in payload)
         assert type(input_json['value']) == float
         value = input_json['value']
         pid = str(input_json.get('pid'))
-        hostname = input_json.get('hostname')
+        # We should not use hostname as it dilutes the data at pretty fast clip
+        # hostname = input_json.get('hostname')
         status_code = str(input_json['status_code'])
         request_method = input_json['request_method']
 
         # Remove any unwanted __slashless and __slashfull from the endpoint name
         group = input_json['endpoint'].split('__')[0]
 
-        histogram.labels(request_method, group, status_code).observe(value)
+        histogram.labels(pid, request_method, group, status_code).observe(value)
 
-        counter.labels(request_method, group, status_code).inc()
-        counter_time.labels(request_method, group, status_code).inc(value)
+        counter.labels(pid, request_method, group, status_code).inc()
+        counter_time.labels(pid, request_method, group, status_code).inc(value)
 
         # Get moving average data per (endpoint, method_tye, status_code, pid)
         total_count = 1
