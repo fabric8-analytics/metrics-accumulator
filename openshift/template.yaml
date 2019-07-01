@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Template
 labels:
-  template: metrics-collector
+  template: metrics-accumulator
 metadata:
-  name: metrics-collector
+  name: metrics-accumulator
   annotations:
-    description: metrics-collector
+    description: metrics-accumulator
 objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
@@ -21,16 +21,16 @@ objects:
   kind: DeploymentConfig
   metadata:
     labels:
-      service: metrics-collector
-    name: metrics-collector
+      service: metrics-accumulator
+    name: metrics-accumulator
   spec:
     replicas: "${{REPLICAS}}"
     selector:
-      service: metrics-collector
+      service: metrics-accumulator
     template:
       metadata:
         labels:
-          service: metrics-collector
+          service: metrics-accumulator
       spec:
         containers:
         - env:
@@ -47,7 +47,7 @@ objects:
           - name: FLASK_LOGGING_LEVEL
             value: ${FLASK_LOGGING_LEVEL}
           image: "${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}"
-          name: metrics-collector
+          name: metrics-accumulator
           ports:
           - containerPort: ${{METRICS_COLLECTOR_SERVICE_PORT}}
           livenessProbe:
@@ -84,8 +84,8 @@ objects:
   kind: Service
   metadata:
     labels:
-      service: metrics-collector
-    name: metrics-collector
+      service: metrics-accumulator
+    name: metrics-accumulator
   spec:
     ports:
     - port: ${{METRICS_COLLECTOR_SERVICE_PORT}}
@@ -93,16 +93,16 @@ objects:
       targetPort: ${{METRICS_COLLECTOR_SERVICE_PORT}}
       protocol: TCP
     selector:
-      service: metrics-collector
+      service: metrics-accumulator
 - apiVersion: v1
   kind: Route
   metadata:
-    name: metrics-collector
+    name: metrics-accumulator
   spec:
     host: ${METRICS_COLLECTOR_API_HOSTNAME}
     to:
       kind: Service
-      name: metrics-collector
+      name: metrics-accumulator
 
 parameters:
 - description: A hostname where the Metrics Collector API should be exposed (will be auto-generated if empty)
@@ -144,7 +144,7 @@ parameters:
   displayName: Docker image
   required: true
   name: DOCKER_IMAGE
-  value: "openshiftio/fabric8-analytics-metrics-collector"
+  value: "openshiftio/metrics-accumulator"
 
 - description: Image tag
   displayName: Image tag
