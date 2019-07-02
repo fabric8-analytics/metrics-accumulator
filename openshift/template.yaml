@@ -27,6 +27,8 @@ objects:
     replicas: "${{REPLICAS}}"
     selector:
       service: metrics-accumulator
+    strategy:
+      type: Recreate
     template:
       metadata:
         labels:
