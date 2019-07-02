@@ -65,6 +65,4 @@ echo "*****************************************"
 PYTHONDONTWRITEBYTECODE=1 python3 "$(which pytest)" --cov=src/ --cov-report term-missing --cov-fail-under=$COVERAGE_THRESHOLD -vv tests/
 printf "%stests passed%s\n\n" "${GREEN}" "${NORMAL}"
 
-echo "**** Removing Prometheus Logs ****"
-rm tests/logs/*
 codecov --token=5418ea7a-02dc-46b1-8ef8-921945bccb41

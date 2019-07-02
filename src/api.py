@@ -78,6 +78,40 @@ setup_logging(app)
 gauge, histogram, counter, counter_time = init_prometheus_client()
 
 
+def create_custom_gauge_metrics(request_method, group, status_code):
+    """Create custom gauge metrics to maintain moving average.
+
+    Group by Method Type, Endpoint Name, Status Code.
+    """
+    total_gauge_time = {}
+    total_gauge_count = {}
+
+    for metric in registry.collect():
+        if 'multiprocess' in metric.documentation.lower():
+            if metric.name == counter_time._name:
+                for sample in metric.samples:
+                    key = "{} {} {}".format(sample[1]['method'], sample[1]['endpoint'],
+                                            sample[1]['status'])
+                    if key in total_gauge_time:
+                        total_gauge_time[key] += sample[2]
+                    else:
+                        total_gauge_time[key] = sample[2]
+
+            if metric.name == counter._name:
+                for sample in metric.samples:
+                    key = "{} {} {}".format(sample[1]['method'], sample[1]['endpoint'],
+                                            sample[1]['status'])
+                    if key in total_gauge_count:
+                        total_gauge_count[key] += sample[2]
+                    else:
+                        total_gauge_count[key] = sample[2]
+
+    for key in total_gauge_time.keys() and total_gauge_count:
+        gauge.labels(request_method, group, status_code).set(
+            total_gauge_time[key] / total_gauge_count[key]
+        )
+
+
 @app.route('/metrics')
 def metrics_exposition():
     """Endpoint to expose prometheus formatted metrics."""
@@ -117,24 +151,15 @@ def metrics_colletion():
         # Remove any unwanted __slashless and __slashfull from the endpoint name
         group = input_json['endpoint'].split('__')[0]
 
+        # Create a Histogram
         histogram.labels(pid, request_method, group, status_code).observe(value)
 
+        # Create Counters for total time and hits
         counter.labels(pid, request_method, group, status_code).inc()
         counter_time.labels(pid, request_method, group, status_code).inc(value)
 
-        # Get moving average data per (endpoint, method_tye, status_code, pid)
-        total_count = 1
-        total_time = 0
-        for sample in counter._samples():
-            if '_total' in sample:
-                total_count = sample[2]
-        for sample in counter_time._samples():
-            if '_total' in sample:
-                total_time = sample[2]
-
-        if total_time > 0 and total_count > 0:
-            # Gauge by default aggregates based on PID if multiprocess_mode in (all, liveall)
-            gauge.labels(request_method, group, status_code).set(float(total_time / total_count))
+        # Create custom gauge excluding pid for our grafana-graphite-osdmonitor combination
+        create_custom_gauge_metrics(request_method, group, status_code)
 
     except (AssertionError, TypeError) as e:
         status = 400

@@ -1,6 +1,6 @@
 """Unit tests for the REST API module."""
 import json
-import pytest
+import os
 
 valid_paylod = {
     "value": 26.0,
@@ -83,3 +83,6 @@ def test_metrics_exposition(client):
     response = client.get("/metrics")
     assert response.status_code == 200
     assert response.data is not None
+    # Remove the files created by metrics collection
+    os.remove("tests/logs/counter_" + str(os.getpid()) + ".db")
+    os.remove("tests/logs/histogram_" + str(os.getpid()) + ".db")
