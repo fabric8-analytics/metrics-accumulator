@@ -8,7 +8,6 @@ from prometheus_client import CollectorRegistry, generate_latest, multiprocess, 
 from prometheus_client import Counter, Histogram, Gauge
 
 registry = CollectorRegistry()
-print(os.environ.get('prometheus_multiproc_dir'))
 multiprocess.MultiProcessCollector(registry)
 
 
