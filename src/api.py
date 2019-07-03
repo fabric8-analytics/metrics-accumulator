@@ -77,7 +77,7 @@ setup_logging(app)
 gauge, histogram, counter, counter_time = init_prometheus_client()
 
 
-def create_custom_gauge_metrics(request_method, group, status_code):
+def create_custom_gauge_metrics():
     """Create custom gauge metrics to maintain moving average.
 
     Group by Method Type, Endpoint Name, Status Code.
@@ -106,7 +106,8 @@ def create_custom_gauge_metrics(request_method, group, status_code):
                         total_gauge_count[key] = sample[2]
 
     for key in total_gauge_time.keys() and total_gauge_count:
-        gauge.labels(request_method, group, status_code).set(
+        group_by = key.split(' ')
+        gauge.labels(group_by[0], group_by[1], group_by[2]).set(
             total_gauge_time[key] / total_gauge_count[key]
         )
 
@@ -158,7 +159,7 @@ def metrics_colletion():
         counter_time.labels(pid, request_method, group, status_code).inc(value)
 
         # Create custom gauge excluding pid for our grafana-graphite-osdmonitor combination
-        create_custom_gauge_metrics(request_method, group, status_code)
+        create_custom_gauge_metrics()
 
     except (AssertionError, TypeError) as e:
         status = 400
