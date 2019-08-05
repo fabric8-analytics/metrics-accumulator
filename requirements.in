@@ -3,3 +3,4 @@ gevent==1.4.0
 gunicorn==19.9.0
 prometheus_client==0.6.0
 codecov
+raven[flask]

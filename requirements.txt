@@ -15,3 +15,6 @@ jinja2==2.10.1            # via flask
 markupsafe==1.1.1         # via jinja2
 prometheus_client==0.6.0
 werkzeug==0.15.4          # via flask
+raven[flask]==6.10.0
+contextlib2==0.5.5        # via raven
+blinker==1.4              # via raven

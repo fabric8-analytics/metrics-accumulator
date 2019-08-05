@@ -48,6 +48,11 @@ objects:
             value: "${CLASS_TYPE}"
           - name: FLASK_LOGGING_LEVEL
             value: ${FLASK_LOGGING_LEVEL}
+          - name: SENTRY_DSN
+            valueFrom:
+              secretKeyRef:
+                name: worker
+                key: sentry_dsn
           image: "${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}"
           name: metrics-accumulator
           ports:

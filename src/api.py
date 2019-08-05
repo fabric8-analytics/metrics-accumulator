@@ -6,6 +6,7 @@ import logging
 from flask import Flask, request
 from prometheus_client import CollectorRegistry, generate_latest, multiprocess, CONTENT_TYPE_LATEST
 from prometheus_client import Counter, Histogram, Gauge
+from raven.contrib.flask import Sentry
 
 registry = CollectorRegistry()
 multiprocess.MultiProcessCollector(registry)
@@ -75,6 +76,9 @@ setup_logging(app)
 
 # Get gauge, histogram and counter handles
 gauge, histogram, counter, counter_time = init_prometheus_client()
+SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
+sentry = Sentry(app, dsn=SENTRY_DSN, logging=True, level=logging.ERROR)
+app.logger.info('App initialized, ready to roll...')
 
 
 def create_custom_gauge_metrics():
@@ -137,11 +141,17 @@ def metrics_colletion():
     status = 200
     message = 'success'
     payload = ['endpoint', 'value', 'request_method', 'status_code', 'pid']
+    input_json = request.get_json()
     try:
-        input_json = request.get_json()
         assert all(inputs in input_json for inputs in payload)
         assert type(input_json['value']) == float
         value = input_json['value']
+        endpoint = input_json['endpoint']
+
+        if endpoint == 'api_v1.get_component_analysis' and value > 2:
+            # In Component analysis if value is more than 2secs, raise error
+            raise Exception("Component Analysis exceeds threshold value")
+
         pid = str(input_json.get('pid'))
         # We should not use hostname as it dilutes the data at pretty fast clip
         # hostname = input_json.get('hostname')
@@ -160,15 +170,15 @@ def metrics_colletion():
 
         # Create custom gauge excluding pid for our grafana-graphite-osdmonitor combination
         create_custom_gauge_metrics()
-
+        print("Inputt", input_json)
+        app.logger.info(input_json)
     except (AssertionError, TypeError) as e:
         status = 400
         message = 'Make sure payload is valid and contains all the mandatory fields.'
-        app.logger.error('%r' % e)
+        app.logger.error('{0} | Input payload: {1}'.format(e, input_json))
     except Exception as e:
         status = 500
-        message = '%r' % e
-        app.logger.error(message)
+        app.logger.error('{0} | Input payload: {1}'.format(e, input_json))
 
     resp = {'message': message}
     return flask.jsonify(resp), status
