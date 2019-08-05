@@ -170,7 +170,6 @@ def metrics_colletion():
 
         # Create custom gauge excluding pid for our grafana-graphite-osdmonitor combination
         create_custom_gauge_metrics()
-        print("Inputt", input_json)
         app.logger.info(input_json)
     except (AssertionError, TypeError) as e:
         status = 400
