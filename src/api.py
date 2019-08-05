@@ -150,7 +150,8 @@ def metrics_colletion():
 
         if endpoint == 'api_v1.get_component_analysis' and value > 2:
             # In Component analysis if value is more than 2secs, raise error
-            raise Exception("Component Analysis exceeds threshold value")
+            app.logger.error(
+             'Component Analysis exceeds threshold value | Input payload: {0}'.format(input_json))
 
         pid = str(input_json.get('pid'))
         # We should not use hostname as it dilutes the data at pretty fast clip
