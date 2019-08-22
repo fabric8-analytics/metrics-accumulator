@@ -11,6 +11,10 @@ from raven.contrib.flask import Sentry
 registry = CollectorRegistry()
 multiprocess.MultiProcessCollector(registry)
 
+reset_counter = False
+if os.environ.get('RESET_COUNTER_ON_RESTART', '0') == '1':
+    reset_counter = True
+
 
 def setup_logging(flask_app):
     """Perform the setup of logging (file, log level) for this application."""
@@ -88,6 +92,7 @@ def create_custom_gauge_metrics():
     """
     total_gauge_time = {}
     total_gauge_count = {}
+    global reset_counter
 
     for metric in registry.collect():
         if 'multiprocess' in metric.documentation.lower():
@@ -111,6 +116,11 @@ def create_custom_gauge_metrics():
 
     for key in total_gauge_time.keys() and total_gauge_count:
         group_by = key.split(' ')
+
+        if reset_counter:
+            gauge.labels(group_by[0], group_by[1], group_by[2]).set(0)
+            reset_counter = False
+            app.logger.info("Counters Reset")
         gauge.labels(group_by[0], group_by[1], group_by[2]).set(
             total_gauge_time[key] / total_gauge_count[key]
         )
@@ -149,7 +159,7 @@ def metrics_colletion():
         endpoint = input_json['endpoint']
 
         if endpoint == 'api_v1.get_component_analysis' and value > 2:
-            # In Component analysis if value is more than 2secs, raise error
+            # In Component analysis if value is more than 2secs, write log error
             app.logger.error(
              'Component Analysis exceeds threshold value | Input payload: {0}'.format(input_json))
 

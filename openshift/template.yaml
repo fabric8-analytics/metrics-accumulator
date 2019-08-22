@@ -48,6 +48,8 @@ objects:
             value: "${CLASS_TYPE}"
           - name: FLASK_LOGGING_LEVEL
             value: ${FLASK_LOGGING_LEVEL}
+          - name: RESET_COUNTER_ON_RESTART
+            value: "${RESET_COUNTER_ON_RESTART}"
           - name: SENTRY_DSN
             valueFrom:
               secretKeyRef:
@@ -194,6 +196,12 @@ parameters:
   required: false
   name: FLASK_LOGGING_LEVEL
   value: "INFO"
+
+- description: "Reset Gauge Counter on Restart of service"
+  displayName: Reset Counter on Restart
+  required: false
+  name: RESET_COUNTER_ON_RESTART
+  value: "0"
 
 - description: Sentry DSN
   displayName: Sentry DSN
