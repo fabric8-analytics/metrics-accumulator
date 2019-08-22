@@ -201,7 +201,7 @@ parameters:
   displayName: Reset Counter on Restart
   required: false
   name: RESET_COUNTER_ON_RESTART
-  value: "0"
+  value: "1"
 
 - description: Sentry DSN
   displayName: Sentry DSN
