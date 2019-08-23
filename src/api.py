@@ -41,7 +41,7 @@ def init_prometheus_client():
     gauge = Gauge(
         '%s_http_request_gauge' % prefix,
         'Average Response Time of HTTP requests aggregated by method, endpoint, response_code',
-        ('pid','method', duration_group_name, 'status'),
+        ('pid', 'method', duration_group_name, 'status'),
         registry=registry, multiprocess_mode='liveall'
     )
 
@@ -116,16 +116,17 @@ def create_custom_gauge_metrics():
 
 
 def populate_guage_dicts():
-    """
-    Will Populate total_gauge_time and total_gauge_count
+    """Will Populate total_gauge_time and total_gauge_count.
+
     :return: None
     """
     for metric in registry.collect():
         if 'multiprocess' in metric.documentation.lower():
             if metric.name == time_count_guage._name:
                 for sample in metric.samples:
-                    key = "{} {} {} {}".format(sample[1]['pid'], sample[1]['method'], sample[1]['endpoint'],
-                                            sample[1]['status'])
+                    key = "{} {} {} {}".format(
+                        sample[1]['pid'], sample[1]['method'],
+                        sample[1]['endpoint'], sample[1]['status'])
                     if key in total_gauge_time:
                         total_gauge_time[key] += sample[2]
                     else:
@@ -133,12 +134,14 @@ def populate_guage_dicts():
 
             if metric.name == request_count_gauge._name:
                 for sample in metric.samples:
-                    key = "{} {} {} {}".format(sample[1]['pid'], sample[1]['method'], sample[1]['endpoint'],
-                                            sample[1]['status'])
+                    key = "{} {} {} {}".format(
+                        sample[1]['pid'], sample[1]['method'],
+                        sample[1]['endpoint'], sample[1]['status'])
                     if key in total_gauge_count:
                         total_gauge_count[key] += sample[2]
                     else:
                         total_gauge_count[key] = sample[2]
+
 
 @app.route('/metrics')
 def metrics_exposition():
