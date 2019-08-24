@@ -41,7 +41,7 @@ def init_prometheus_client():
     gauge = Gauge(
         '%s_http_request_gauge' % prefix,
         'Average Response Time of HTTP requests aggregated by method, endpoint, response_code',
-        ('pid', 'method', duration_group_name, 'status'),
+        ('method', duration_group_name, 'status'),
         registry=registry, multiprocess_mode='liveall'
     )
 
@@ -103,14 +103,14 @@ def create_custom_gauge_metrics():
             group_by = key.split(' ')
             request_count_gauge.labels(group_by[0], group_by[1], group_by[2], group_by[3]).set(0)
             time_count_guage.labels(group_by[0], group_by[1], group_by[2], group_by[3]).set(0)
-            gauge.labels(group_by[0], group_by[1], group_by[2], group_by[3]).set(0)
+            gauge.labels(group_by[1], group_by[2], group_by[3]).set(0)
         app.logger.info("Gauges Reset")
         reset_counter = False
         populate_guage_dicts()
 
     for key in total_gauge_time.keys() and total_gauge_count:
         group_by = key.split(' ')
-        gauge.labels(group_by[0], group_by[1], group_by[2], group_by[3]).set(
+        gauge.labels(group_by[1], group_by[2], group_by[3]).set(
             total_gauge_time[key] / total_gauge_count[key]
         )
 
