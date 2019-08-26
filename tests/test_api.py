@@ -88,5 +88,8 @@ def test_metrics_exposition(client):
     assert response.status_code == 200
     assert response.data is not None
     # Remove the files created by metrics collection
-    os.remove("tests/logs/counter_" + str(os.getpid()) + ".db")
-    os.remove("tests/logs/histogram_" + str(os.getpid()) + ".db")
+    dir_name = "tests/logs/"
+    test = os.listdir(dir_name)
+    for item in test:
+        if item.endswith(".db"):
+            os.remove(os.path.join(dir_name, item))
