@@ -1,6 +1,9 @@
 """Unit tests for the REST API module."""
 import json
 import os
+from src.api import create_custom_gauge_metrics
+from unittest import mock
+
 
 valid_paylod = {
     "value": 26.0,
@@ -86,3 +89,9 @@ def test_metrics_exposition(client):
     # Remove the files created by metrics collection
     os.remove("tests/logs/counter_" + str(os.getpid()) + ".db")
     os.remove("tests/logs/histogram_" + str(os.getpid()) + ".db")
+
+
+@mock.patch('src.api.reset_counter', return_value=True)
+def test_create_custom_gauge_metrics(client):
+    """Test Create custom Gauge Metrics"""
+    assert create_custom_gauge_metrics() == None
