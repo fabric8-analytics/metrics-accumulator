@@ -72,7 +72,8 @@ def test_metrics_collection_invalid_payload2(client):
                                    "the mandatory fields."
 
 
-def test_metrics_collection_valid_payload(client):
+@mock.patch('src.api.reset_counter', return_value=False)
+def test_metrics_collection_valid_payload(m, client):
     """Test the metrics collection endpoint."""
     response = client.post(api_route_for("prometheus"), json=valid_paylod)
     assert response.status_code == 200
@@ -89,9 +90,3 @@ def test_metrics_exposition(client):
     # Remove the files created by metrics collection
     os.remove("tests/logs/counter_" + str(os.getpid()) + ".db")
     os.remove("tests/logs/histogram_" + str(os.getpid()) + ".db")
-
-
-@mock.patch('src.api.reset_counter', return_value=True)
-def test_create_custom_gauge_metrics(client):
-    """Test Create custom Gauge Metrics"""
-    assert create_custom_gauge_metrics() == None

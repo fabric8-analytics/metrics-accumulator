@@ -110,9 +110,10 @@ def create_custom_gauge_metrics():
 
     for key in total_gauge_time.keys() and total_gauge_count:
         group_by = key.split(' ')
-        gauge.labels(group_by[1], group_by[2], group_by[3]).set(
-            total_gauge_time[key] / total_gauge_count[key]
-        )
+        if total_gauge_count[key]:
+            gauge.labels(group_by[1], group_by[2], group_by[3]).set(
+                total_gauge_time[key] / total_gauge_count[key]
+            )
 
 
 def populate_guage_dicts():
