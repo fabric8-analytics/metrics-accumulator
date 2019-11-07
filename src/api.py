@@ -50,7 +50,7 @@ def init_prometheus_client():
     # We need to extend pid labeling to our Histogram as well
     # histogram = Histogram(
     #     '%s_http_request_duration_seconds' % prefix,
-    #     'Flask HTTP request duration in seconds aggregated by pid, method, endpoint, response_code',
+    #     'HTTP request duration in seconds aggregated by pid, method, endpoint, response_code',
     #     ('method', duration_group_name, 'status'),
     #     registry=registry,
     #     **buckets
@@ -58,20 +58,20 @@ def init_prometheus_client():
 
     # Add group by endpoint or path for our Counter metrics
     request_count_gauge = Gauge(
-        '%s_request_count_guage' % prefix,
-        'Total number of HTTP requests in Guage format aggregated by method, endpoint, response_code',
+        '%s_request_count_gauge' % prefix,
+        'Total number of HTTP requests Gauge aggregated by method, endpoint, response_code',
         ('method', duration_group_name, 'status'),
         registry=registry
     )
     # Add group by endpoint or path for our Counter metrics
-    time_count_guage = Gauge(
-        '%s_time_count_guage' % prefix,
-        'Total time in Guage format to serve HTTP requests aggregated by method, endpoint, response_code',
+    time_count_gauge = Gauge(
+        '%s_time_count_gauge' % prefix,
+        'Total time Gauge to serve HTTP requests aggregated by method, endpoint, response_code',
         ('method', duration_group_name, 'status'),
         registry=registry
     )
 
-    return gauge, request_count_gauge, time_count_guage
+    return gauge, request_count_gauge, time_count_gauge
 
 
 # Initialize flask app
@@ -81,7 +81,7 @@ app = Flask(__name__)
 setup_logging(app)
 
 # Get gauge, histogram and counter handles
-gauge, request_count_gauge, time_count_guage = init_prometheus_client()
+gauge, request_count_gauge, time_count_gauge = init_prometheus_client()
 SENTRY_DSN = os.environ.get("SENTRY_DSN", "")
 sentry = Sentry(app, dsn=SENTRY_DSN, logging=True, level=logging.ERROR)
 app.logger.info('App initialized, ready to roll...')
@@ -97,18 +97,18 @@ def create_custom_gauge_metrics():
     global total_gauge_count
     total_gauge_count = {}
     global reset_counter
-    populate_guage_dicts()
+    populate_gauge_dicts()
 
-    # Clear Guages
+    # Clear Gauges
     if reset_counter:
         for key in total_gauge_time.keys() and total_gauge_count:
             group_by = key.split(' ')
             request_count_gauge.labels(group_by[0], group_by[1], group_by[2]).set(0)
-            time_count_guage.labels(group_by[0], group_by[1], group_by[2]).set(0)
+            time_count_gauge.labels(group_by[0], group_by[1], group_by[2]).set(0)
             gauge.labels(group_by[0], group_by[1], group_by[2]).set(0)
         app.logger.info("Gauges Reset")
         reset_counter = False
-        populate_guage_dicts()
+        populate_gauge_dicts()
 
     for key in total_gauge_time.keys() and total_gauge_count:
         group_by = key.split(' ')
@@ -118,17 +118,18 @@ def create_custom_gauge_metrics():
             )
 
 
-def populate_guage_dicts():
+def populate_gauge_dicts():
     """Will Populate total_gauge_time and total_gauge_count.
 
     :return: None
     """
     for metric in registry.collect():
         if 'multiprocess' in metric.documentation.lower():
-            if metric.name == time_count_guage._name:
+            if metric.name == time_count_gauge._name:
                 for sample in metric.samples:
                     key = "{} {} {}".format(sample[1]['method'],
-                        sample[1]['endpoint'], sample[1]['status'])
+                                            sample[1]['endpoint'],
+                                            sample[1]['status'])
                     if key in total_gauge_time:
                         total_gauge_time[key] += sample[2]
                     else:
@@ -137,7 +138,8 @@ def populate_guage_dicts():
             if metric.name == request_count_gauge._name:
                 for sample in metric.samples:
                     key = "{} {} {}".format(sample[1]['method'],
-                        sample[1]['endpoint'], sample[1]['status'])
+                                            sample[1]['endpoint'],
+                                            sample[1]['status'])
                     if key in total_gauge_count:
                         total_gauge_count[key] += sample[2]
                     else:
@@ -194,7 +196,7 @@ def metrics_colletion():
 
         # Create Counters for total time and hits
         request_count_gauge.labels(request_method, group, status_code).inc()
-        time_count_guage.labels(request_method, group, status_code).inc(value)
+        time_count_gauge.labels(request_method, group, status_code).inc(value)
 
         # Create custom gauge excluding pid for our grafana-graphite-osdmonitor combination
         create_custom_gauge_metrics()
