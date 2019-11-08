@@ -58,14 +58,14 @@ def init_prometheus_client():
 
     # Add group by endpoint or path for our Counter metrics
     request_count_gauge = Gauge(
-        '%s_request_count_gauge' % prefix,
+        '%s_request_count_guage' % prefix,
         'Total number of HTTP requests Gauge aggregated by method, endpoint, response_code',
         ('method', duration_group_name, 'status'),
         registry=registry
     )
     # Add group by endpoint or path for our Counter metrics
     time_count_gauge = Gauge(
-        '%s_time_count_gauge' % prefix,
+        '%s_time_count_guage' % prefix,
         'Total time Gauge to serve HTTP requests aggregated by method, endpoint, response_code',
         ('method', duration_group_name, 'status'),
         registry=registry
