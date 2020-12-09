@@ -94,9 +94,14 @@ objects:
   metadata:
     labels:
       service: metrics-accumulator
+      monitoring: enabled
     name: metrics-accumulator
   spec:
     ports:
+    - port: 5000
+      name: metrics
+      targetPort: ${{METRICS_COLLECTOR_SERVICE_PORT}}
+      protocol: TCP
     - port: ${{METRICS_COLLECTOR_SERVICE_PORT}}
       name: "${METRICS_COLLECTOR_SERVICE_PORT}"
       targetPort: ${{METRICS_COLLECTOR_SERVICE_PORT}}
